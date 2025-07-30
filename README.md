@@ -62,4 +62,4 @@ Our MVP focuses on the **Atlantic Forest biome**, featuring a functional mini-ga
 ---
 
 ## Project Plan (Portuguese version)
-file:///Users/daygoncalves/Downloads/plano-de-projeto-nhangara-mirim-edi%C3%A7%C3%A3o-hedera-amaz%C3%B4nia-cop-30.html
+[Uploading plano-de-projeto-nhangara-mirim-edição-hedera-amazônia-cop-30.md…]()
