@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prova de Conceito Hedera - Nhangara Mirim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .section-title {
+             border-bottom: 3px solid #16a34a; /* green-600 */
+             padding-bottom: 0.5rem;
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .hashscan-link {
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800 p-4 sm:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-green-800">Prova de Conceito Hedera</h1>
+            <p class="text-slate-600 mt-2">Demonstração da mintagem de NFTs e do sistema de royalties.</p>
+        </header>
+
+        <!-- Ação do Jogo -->
+        <div class="text-center mb-12">
+            <button id="conquer-amulet-btn" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
+                Simular Conquista do Bio-Amuleto da Nascente
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Seção da Carteira -->
+            <div>
+                <h2 class="section-title text-2xl font-bold mb-6">Minha Carteira de Guardião</h2>
+                <div id="wallet-container" class="bg-white p-6 rounded-xl shadow-md min-h-[300px]">
+                    <p id="wallet-empty-state" class="text-slate-500 text-center pt-8">Sua carteira está vazia. Conquiste seu primeiro Bio-Amuleto!</p>
+                    <!-- Cards de NFTs aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Seção do Mercado -->
+            <div>
+                <h2 class="section-title text-2xl font-bold mb-6">Mercado Raízes do Brasil</h2>
+                <div id="market-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Cards de NFTs à venda aparecerão aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Venda de NFT -->
+    <div id="sell-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h3 id="sell-modal-title" class="text-xl font-bold mb-4">Vender NFT</h3>
+            <p class="text-slate-600 mb-4">Você comprou este item por <strong id="buy-price"></strong> Moedas. Por quanto deseja vendê-lo?</p>
+            <input type="number" id="sell-price-input" class="w-full p-3 rounded-lg border-2 border-gray-300 text-center mb-4" placeholder="Ex: 150">
+            <div class="flex gap-4">
+                <button id="cancel-sell-btn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition">Cancelar</button>
+                <button id="confirm-sell-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg transition">Confirmar Venda</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmação/Resultado -->
+    <div id="result-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <div id="result-icon" class="text-5xl mb-4"></div>
+            <h3 id="result-title" class="text-xl font-bold mb-2"></h3>
+            <div id="result-text" class="text-slate-600 mb-4 space-y-2"></div>
+            <button id="result-close-btn" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition">Entendido</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SIMULADOR HEDERA ---
+            // Este objeto simula as chamadas para a rede Hedera.
+            // No projeto real, as funções aqui seriam substituídas por chamadas ao Hedera SDK.
+            const HederaSimulator = {
+                mintNFT: (metadata) => {
+                    console.log("SIMULATOR: Minting NFT com metadados:", metadata);
+                    // Simula a criação de um ID de transação e um link para o explorador
+                    const timestamp = Date.now();
+                    const randomPart = Math.random().toString(36).substring(2, 10);
+                    const transactionId = `0.0.12345@${timestamp}`;
+                    const hashscanLink = `https://hashscan.io/testnet/transaction/${timestamp}-${randomPart}`;
+                    
+                    return {
+                        success: true,
+                        nftId: `0.0.54321-${randomPart}`,
+                        transactionId: transactionId,
+                        explorerLink: hashscanLink,
+                        metadata: metadata
+                    };
+                },
+                resellNFT: (nft, sellPrice) => {
+                     console.log(`SIMULATOR: Revendendo NFT por ${sellPrice}. Preço original: ${nft.buyPrice}`);
+                     const profit = sellPrice - nft.buyPrice;
+                     let artistRoyalty = 0;
+                     if (profit > 0) {
+                         artistRoyalty = Math.floor(profit * 0.10); // Royalty de 10% sobre o lucro
+                     }
+                     const sellerProfit = profit - artistRoyalty;
+
+                     return {
+                         success: true,
+                         sellerProfit: sellerProfit,
+                         artistRoyalty: artistRoyalty,
+                         originalArtist: nft.metadata.artist,
+                     }
+                }
+            };
+
+            // --- ESTADO DA APLICAÇÃO ---
+            const state = {
+                wallet: [],
+                market: [
+                    { id: 'art001', type: 'art', buyPrice: 100, metadata: { name: 'Grafismo Pataxó', artist: 'Artista Awa', community: 'Aldeia Pataxó', image: 'https://placehold.co/400x400/9F7AEA/FFFFFF?text=Arte+Patax%C3%B3' } },
+                    { id: 'art002', type: 'art', buyPrice: 120, metadata: { name: 'Cocar Digital', artist: 'Artista Yawalapiti', community: 'Aldeia Yawalapiti', image: 'https://placehold.co/400x400/FBBF24/FFFFFF?text=Cocar+Digital' } },
+                ],
+                nftToSell: null,
+            };
+
+            // --- ELEMENTOS DO DOM ---
+            const elements = {
+                conquerBtn: document.getElementById('conquer-amulet-btn'),
+                walletContainer: document.getElementById('wallet-container'),
+                walletEmptyState: document.getElementById('wallet-empty-state'),
+                marketContainer: document.getElementById('market-container'),
+                sellModal: document.getElementById('sell-modal'),
+                sellModalTitle: document.getElementById('sell-modal-title'),
+                buyPriceText: document.getElementById('buy-price'),
+                sellPriceInput: document.getElementById('sell-price-input'),
+                cancelSellBtn: document.getElementById('cancel-sell-btn'),
+                confirmSellBtn: document.getElementById('confirm-sell-btn'),
+                resultModal: document.getElementById('result-modal'),
+                resultIcon: document.getElementById('result-icon'),
+                resultTitle: document.getElementById('result-title'),
+                resultText: document.getElementById('result-text'),
+                resultCloseBtn: document.getElementById('result-close-btn'),
+            };
+
+            // --- FUNÇÕES DE RENDERIZAÇÃO ---
+            const renderWallet = () => {
+                elements.walletContainer.innerHTML = '';
+                if (state.wallet.length === 0) {
+                    elements.walletContainer.appendChild(elements.walletEmptyState);
+                    return;
+                }
+                state.wallet.forEach(nft => {
+                    const isAmulet = nft.type === 'amulet';
+                    const card = document.createElement('div');
+                    card.className = 'card bg-slate-50 p-4 rounded-lg shadow-sm border';
+                    card.innerHTML = `
+                        <img src="${nft.metadata.image}" alt="${nft.metadata.name}" class="w-full h-40 object-cover rounded-md mb-4">
+                        <h4 class="font-bold text-lg">${nft.metadata.name}</h4>
+                        ${isAmulet ? `<p class="text-sm text-green-600 font-semibold">Poder: ${nft.metadata.power}</p>` : ''}
+                        ${!isAmulet ? `<p class="text-sm text-slate-500">Artista: ${nft.metadata.artist}</p>` : ''}
+                        <div class="mt-4 bg-gray-100 p-2 rounded">
+                            <p class="text-xs text-gray-500">ID da Transação (Testnet):</p>
+                            <a href="${nft.explorerLink}" target="_blank" class="hashscan-link text-blue-600 hover:underline">${nft.transactionId}</a>
+                        </div>
+                        ${!isAmulet ? `<button data-id="${nft.id}" class="sell-btn w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition">Vender</button>` : ''}
+                    `;
+                    elements.walletContainer.appendChild(card);
+                });
+            };
+
+            const renderMarket = () => {
+                elements.marketContainer.innerHTML = '';
+                state.market.forEach(nft => {
+                    const card = document.createElement('div');
+                    card.className = 'card bg-white p-4 rounded-lg shadow-sm border';
+                    card.innerHTML = `
+                        <img src="${nft.metadata.image}" alt="${nft.metadata.name}" class="w-full h-40 object-cover rounded-md mb-4">
+                        <h4 class="font-bold text-lg">${nft.metadata.name}</h4>
+                        <p class="text-sm text-slate-500">Artista: ${nft.metadata.artist}</p>
+                        <p class="text-sm text-slate-500">Comunidade: ${nft.metadata.community}</p>
+                        <button data-id="${nft.id}" class="buy-btn w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition">Comprar por ${nft.buyPrice} Moedas</button>
+                    `;
+                    elements.marketContainer.appendChild(card);
+                });
+            };
+
+            // --- FUNÇÕES DE LÓGICA ---
+            const conquerAmulet = () => {
+                const metadata = {
+                    name: 'Bio-Amuleto da Nascente',
+                    power: 'Flutuar',
+                    image: 'https://placehold.co/400x400/22D3EE/FFFFFF?text=Amuleto'
+                };
+                const result = HederaSimulator.mintNFT(metadata);
+                if (result.success) {
+                    const newAmulet = { ...result, type: 'amulet' };
+                    state.wallet.push(newAmulet);
+                    renderWallet();
+                    
+                    elements.resultIcon.innerHTML = '✨';
+                    elements.resultTitle.innerText = 'Conquista Desbloqueada!';
+                    elements.resultText.innerHTML = `
+                        <p>Você recebeu o <strong>Bio-Amuleto da Nascente</strong>!</p>
+                        <p class="text-sm mt-2">Sua conquista foi registrada na rede Hedera.</p>
+                        <div class="mt-4 bg-gray-100 p-2 rounded">
+                            <p class="text-xs text-gray-500">ID da Transação (Testnet):</p>
+                            <a href="${result.explorerLink}" target="_blank" class="hashscan-link text-blue-600 hover:underline">${result.transactionId}</a>
+                        </div>
+                    `;
+                    showModal('result-modal');
+                }
+            };
+            
+            const buyNFT = (nftId) => {
+                const nftIndex = state.market.findIndex(nft => nft.id === nftId);
+                if (nftIndex > -1) {
+                    const [nftToBuy] = state.market.splice(nftIndex, 1);
+                    
+                    // Simula mintagem da compra
+                    const result = HederaSimulator.mintNFT(nftToBuy.metadata);
+                    if(result.success) {
+                        const boughtNft = { ...nftToBuy, ...result };
+                        state.wallet.push(boughtNft);
+                        renderWallet();
+                        renderMarket();
+                    }
+                }
+            };
+
+            const openSellModal = (nftId) => {
+                state.nftToSell = state.wallet.find(nft => nft.id === nftId);
+                if (state.nftToSell) {
+                    elements.sellModalTitle.innerText = `Vender "${state.nftToSell.metadata.name}"`;
+                    elements.buyPriceText.innerText = state.nftToSell.buyPrice;
+                    elements.sellPriceInput.value = '';
+                    showModal('sell-modal');
+                }
+            };
+
+            const confirmSell = () => {
+                const sellPrice = parseInt(elements.sellPriceInput.value, 10);
+                if (isNaN(sellPrice) || sellPrice <= state.nftToSell.buyPrice) {
+                    alert('O preço de venda deve ser um número maior que o preço de compra para gerar lucro.');
+                    return;
+                }
+                
+                const result = HederaSimulator.resellNFT(state.nftToSell, sellPrice);
+                
+                if (result.success) {
+                    // Remove o NFT da carteira
+                    state.wallet = state.wallet.filter(nft => nft.id !== state.nftToSell.id);
+                    // Adiciona de volta ao mercado (simulação)
+                    state.market.push({ ...state.nftToSell, buyPrice: sellPrice });
+                    
+                    renderWallet();
+                    renderMarket();
+                    hideModal('sell-modal');
+
+                    // Mostra o resultado com a lógica de royalties
+                    elements.resultIcon.innerHTML = '💰';
+                    elements.resultTitle.innerText = 'Venda Realizada com Sucesso!';
+                    elements.resultText.innerHTML = `
+                        <p>Seu NFT foi vendido por <strong>${sellPrice} Moedas</strong>!</p>
+                        <p class="text-sm text-green-700">Seu lucro: <strong>${result.sellerProfit} Moedas</strong></p>
+                        <hr class="my-2">
+                        <p class="text-sm font-semibold">De forma transparente na rede Hedera, um royalty de <strong>${result.artistRoyalty} Moedas</strong> foi enviado de volta para <strong>${result.originalArtist}</strong>, o criador original.</p>
+                        <p class="text-xs mt-2">É assim que no Nhangara Mirim, todos prosperam juntos.</p>
+                    `;
+                    showModal('result-modal');
+                }
+            };
+
+            const showModal = (id) => {
+                document.getElementById(id).classList.remove('opacity-0', 'pointer-events-none');
+            };
+            const hideModal = (id) => {
+                document.getElementById(id).classList.add('opacity-0', 'pointer-events-none');
+            };
+
+            // --- EVENT LISTENERS ---
+            elements.conquerBtn.addEventListener('click', conquerAmulet);
+            elements.resultCloseBtn.addEventListener('click', () => hideModal('result-modal'));
+            elements.cancelSellBtn.addEventListener('click', () => hideModal('sell-modal'));
+            elements.confirmSellBtn.addEventListener('click', confirmSell);
+
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('buy-btn')) {
+                    buyNFT(e.target.dataset.id);
+                }
+                if (e.target.classList.contains('sell-btn')) {
+                    openSellModal(e.target.dataset.id);
+                }
+            });
+
+            // --- INICIALIZAÇÃO ---
+            renderWallet();
+            renderMarket();
+        });
+    </script>
+
+</body>
+</html>
